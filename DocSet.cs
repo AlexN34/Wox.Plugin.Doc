@@ -13,6 +13,7 @@ namespace Wox.Plugin.Doc
     {
         private static List<Doc> installedDocs = new List<Doc>();
         private string docsetPath;
+        private Settings _settings;
 
         public static List<Doc> InstalledDocs
         {
@@ -22,8 +23,9 @@ namespace Wox.Plugin.Doc
         /// <summary>
         /// Load all installed docs
         /// </summary>
-        public void Load(string pluginDirectory)
+        public void Load(string pluginDirectory, Settings settings)
         {
+            _settings = settings;
             docsetPath = Path.Combine(pluginDirectory, @"Docset");
             if (!Directory.Exists(docsetPath))
             {
@@ -90,7 +92,7 @@ namespace Wox.Plugin.Doc
                             {
                                 string url = string.Format(@"{0}\{1}\Contents\Resources\Documents\{2}#{3}", docsetPath,
                                                            doc.Name+".docset", docPath, name);
-                                string browser = GetDefaultBrowserPath();
+                                string browser = GetBrowserPath();
                                 Process.Start(browser, String.Format("\"file:///{0}\"", url));
                                 return true;
                             }
@@ -102,9 +104,39 @@ namespace Wox.Plugin.Doc
             return results;
         }
 
-        private static string GetDefaultBrowserPath()
+        private string GetBrowserPath()
         {
-            string key = @"HTTP\shell\open\command";
+            switch (_settings.BrowserLocationMethod)
+            {
+                case BrowserLocationMethods.RootDefault:
+                    return GetDefaultRootBrowserPath();
+                case BrowserLocationMethods.UserDefault:
+                    return GetUserDefaultBrowserPath();
+                case BrowserLocationMethods.Custom:
+                    return _settings.CustomBrowserPath;
+                default:
+                    return GetDefaultRootBrowserPath(); // use root value when none selected
+            }
+        }
+
+        private static string GetUserDefaultBrowserPath()
+        {
+            string browserChoiceIdKey =
+                @"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice";
+            string browserChoice = Registry.CurrentUser
+                .OpenSubKey(browserChoiceIdKey, false)
+                .GetValue("ProgId").ToString();
+            return GetBrowserPathFromChoice(browserChoice);
+        }
+
+        private static string GetDefaultRootBrowserPath()
+        {
+            return GetBrowserPathFromChoice("HTTP");
+        }
+
+        private static string GetBrowserPathFromChoice(string browserChoice)
+        {
+            string key = $@"{browserChoice}\shell\open\command";
             using (RegistryKey registrykey = Registry.ClassesRoot.OpenSubKey(key, false))
             {
                 if (registrykey != null) return ((string)registrykey.GetValue(null, null)).Split('"')[1];
@@ -128,6 +160,13 @@ where (ztokenname like '%{0}%') order by length(ztokenname), lower(ztokenname) a
             }
 
             return sql;
+        }
+
+         public static class BrowserLocationMethods
+        {
+            public const string RootDefault = "ROOT_DEFAULT";
+            public const string UserDefault = "USER_DEFAULT";
+            public const string Custom = "CUSTOM";
         }
     }
 }

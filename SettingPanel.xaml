@@ -6,6 +6,31 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <TabControl Margin="10">
+        <TabItem Header="Configuration">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                </StackPanel>
+                <StackPanel 
+            Grid.Column="1">
+                    <TextBlock >Browser for opening Docsets:</TextBlock>
+                    <RadioButton Name="ROOT_DEFAULT"  Checked="OnCheckRadioBox">Windows default</RadioButton>
+                    <RadioButton Name="USER_DEFAULT" Checked="OnCheckRadioBox">User default</RadioButton>
+                    <RadioButton Name="CUSTOM" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Checked="OnCheckRadioBox">
+                        <DockPanel  LastChildFill="True">
+                            <TextBlock >Custom</TextBlock>
+                            <TextBox Grid.Column="1"  Margin="10,0,0,0" Text="{Binding CustomBrowserPath}"/>
+                            <Button Margin="10,0,0,0" Click="OnSelectBrowserDirectoryClick">Select</Button>
+                        </DockPanel>
+                    </RadioButton>
+                </StackPanel>
+            </StackPanel>
+            <!--<DockPanel>
+                <TextBlock Text="Testtext" />
+                <TextBox  Text="Test" />
+                <Button Margin="10" Click="OnSelectPythonDirectoryClick"
+                        Content="Test" />
+            </DockPanel>-->
+        </TabItem>
         <TabItem Header="Installed Docs">
             <ListView  x:Name="lbInstalledDocs">
                 <ListView.View>
